@@ -38,3 +38,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function changeIcon(imageIcon) {
   chrome.action.setIcon({ path: imageIcon });
 }
+
+
+chrome.storage.sync.set({ 'sessionId': 'your_session_id_here' });
+

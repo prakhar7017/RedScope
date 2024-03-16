@@ -21,3 +21,4 @@ rrweb.record({
     chrome.runtime.sendMessage(payload);
   }
 });
+

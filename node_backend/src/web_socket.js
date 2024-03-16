@@ -1,9 +1,9 @@
 import { WebSocketServer } from 'ws';
 import fs from 'fs-extra';
-import { dataFolderName } from './constants.js';
 import path from "path";
 
 const sessionMap = new Map(); // Map to store sessionId and associated URL data file path
+const dataFolderName = 'data_files'; // Folder to store data files
 
 const startWebSocketServer = () => {
   const wss = new WebSocketServer({ port: 3008 });
@@ -23,28 +23,29 @@ const processPayload = (payload, ws) => {
   console.log( { sessionId, type, url, payload });
   console.log("*".repeat(80));
 
-  if (type !== 'rrweb events') {
-    return;
-  }
-  const jsonData = JSON.parse(data);
+  if (type === 'rrweb events') {
+    const jsonData = JSON.parse(data);
+    let dataFilePath;
 
-  let dataFilePath;
-  if (sessionId) {
-    dataFilePath = sessionMap.get(sessionId);
-    if (!dataFilePath) {
-      // If data file path doesn't exist for the sessionId, create a new file
-      dataFilePath = path.join(dataFolderName, `${sessionId}_${url}.json`);
-      sessionMap.set(sessionId, dataFilePath);
+    if (sessionId) {
+      dataFilePath = sessionMap.get(sessionId);
+      if (!dataFilePath) {
+        // If data file path doesn't exist for the sessionId, create a new file
+        dataFilePath = path.join(dataFolderName, `${sessionId}_${url}.json`);
+        sessionMap.set(sessionId, dataFilePath);
+      }
+    } else {
+      console.error('No sessionId provided in payload.');
+      return; // Stop processing payload if no sessionId is provided
     }
+
+    fs.writeJsonSync(dataFilePath, jsonData, { flag: 'a' });
+
+    // Optionally, you can send acknowledgment back to the client
+    ws.send(JSON.stringify({ message: 'Data received successfully.' }));
   } else {
-    console.error('No sessionId provided in payload.');
-    return; // Stop processing payload if no sessionId is provided
+    console.error('Invalid payload type.');
   }
-
-  fs.writeJsonSync(dataFilePath, jsonData, { flag: 'a' });
-
-  // Optionally, you can send acknowledgment back to the client
-  ws.send(JSON.stringify({ message: 'Data received successfully.' }));
 };
 
 const fetchRrwebEvents = (sessionId, id) => {

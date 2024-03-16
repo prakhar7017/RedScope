@@ -11,11 +11,12 @@
 
 <script>
   const searchParams = new URLSearchParams(window.location.search);
+  const sessionId = searchParams.get('sessionId');
   const id = searchParams.get('id');
 
-  // Check if id is provided in the URL
-  if (id !== null) {
-    const apiUrl = `http://localhost:3000/api-rrweb-events?id=${id}`;
+  // Check if sessionId and id are provided in the URL
+  if (sessionId !== null && id !== null) {
+    const apiUrl = `http://localhost:3000/api-rrweb-events?sessionId=${sessionId}&id=${id}`;
     fetch(apiUrl)
       .then(response => {
         if (!response.ok) {
@@ -42,7 +43,7 @@
       })
       .catch(err => console.error(err));
   } else {
-    console.error('No id parameter provided in the URL');
+    console.error('sessionId or id parameter missing in the URL');
   }
 </script>
 </body>
